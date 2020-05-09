@@ -1,0 +1,17 @@
+jira.jajservers.duckdns.org {
+#Jira
+    proxy / http://confluence:8080 {
+        timeout 86400s
+        transparent
+        websocket
+    }
+}
+
+confluence.jajservers.duckdns.org {
+#Confluence
+    proxy / http://confluence:8080 {
+        timeout 86400s
+        transparent
+        websocket
+    }
+}

@@ -1,0 +1,40 @@
+version: '3'
+
+services:
+  caddy:
+    image: abiosoft/caddy:1.0.3
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - "./src/caddy/Caddyfile:/etc/Caddyfile"
+      - "./data/caddy :/root/caddy"
+    environment:
+      EULA: "ACME_AGREE=true"
+    restart: always
+
+  jira:
+    image: atlassian/jira-software:8.9.0-EAP02-jdk11
+    environment:
+      - ATL_PROXY_NAME=jira.internal
+      - ATL_PROXY_PORT=80
+      - ATL_TOMCAT_SCHEME=http 
+    volumes:
+      - ./data/jira:./data/atlassian/jira
+    restart: always
+
+  confluence: 
+    image: atlassian/confluence-server::6.6.15-jdk8
+    environment: 
+     - ATL_PROXY_NAME=confluence.internal
+     - ATL_PROXY_PORT=80
+     - ATL_TOMCAT_SCHEME=http
+    volumes:
+      -./data/confluence:/var/atlassian/application-data/confluence
+    restart: always
+
+  networks: 
+    default: 
+      aliases:
+        - jira.internal
+        - confluence.internal
