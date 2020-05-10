@@ -7,34 +7,80 @@ services:
       - "80:80"
       - "443:443"
     volumes:
-      - "./src/caddy/Caddyfile:/etc/Caddyfile"
-      - "./data/caddy :/root/caddy"
+      - "./src/Caddyfile:/etc/Caddyfile"
+      - "./data/caddy:/root/caddy"
     environment:
       EULA: "ACME_AGREE=true"
     restart: always
+    networks: 
+      - services
+    depends_on:
+      - confluence
+      - jira
 
   jira:
     image: atlassian/jira-software:8.9.0-EAP02-jdk11
-    environment:
-      - ATL_PROXY_NAME=jira.internal
-      - ATL_PROXY_PORT=80
-      - ATL_TOMCAT_SCHEME=http 
     volumes:
-      - ./data/jira:./data/atlassian/jira
+      - ./data/jira:/var/atlassian/jira
+    environment:
+      # Database
+      - ATL_JDBC_URL=jdbc:postgresql://postgresql:5432/atlassian
+      - ATL_JDBC_USER=atlassian
+      - ATL_JDBC_PASSWORD=password
+      - ATL_DB_DRIVER=org.postgresql.Driver
+      - ATL_DB_TYPE=postgres72
+
+      #Proxy
+      - ATL_PROXY_NAME=localhost
+      - ATL_PROXY_PORT=8080
+      - ATL_TOMCAT_SCHEME=https
+      - ATL_TOMCAT_SECURE=true
     restart: always
+    networks: 
+      - services
+      - db
+    depends_on:
+      - postgresql
 
   confluence: 
-    image: atlassian/confluence-server::6.6.15-jdk8
-    environment: 
-     - ATL_PROXY_NAME=confluence.internal
-     - ATL_PROXY_PORT=80
-     - ATL_TOMCAT_SCHEME=http
+    image: atlassian/confluence-server:6.6.15-jdk8
     volumes:
-      -./data/confluence:/var/atlassian/application-data/confluence
-    restart: always
+      - ./data/confluence:/var/atlassian/application-data/confluence
+    environment:
+      # Database
+      - ATL_JDBC_URL=jdbc:postgresql://postgresql:5432/atlassian
+      - ATL_JDBC_USER=atlassian
+      - ATL_JDBC_PASSWORD=password
+      - ATL_DB_TYPE=postgresql
 
-  networks: 
-    default: 
-      aliases:
-        - jira.internal
-        - confluence.internal
+      #Proxy
+      - ATL_PROXY_NAME=localhost
+      - ATL_PROXY_PORT=8090
+      - ATL_TOMCAT_SCHEME=https
+      - ATL_TOMCAT_SECURE=true
+    restart: always
+    networks: 
+      - services
+      - db
+    depends_on:
+      - postgresql
+
+  postgresql:
+    image: postgres:11-alpine
+    networks:
+      - db
+    volumes:
+      - ./data/postgresql:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_USER=atlassian
+      - POSTGRES_DB=atlassian
+      - POSTGRES_ENCODING=UNICODE
+      - POSTGRES_COLLATE=C
+      - POSTGRES_COLLATE_TYPE=C
+
+networks:
+  services:
+    driver: bridge
+  db:
+    driver: bridge
