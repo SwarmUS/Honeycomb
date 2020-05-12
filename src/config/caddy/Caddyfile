@@ -1,6 +1,6 @@
 #Caddyfile for webservices
 
-jira.jajservers.duckdns.org {
+jira.swarmus.jajservers.duckdns.org {
 #Jira
     proxy / http://jira:8080  {
         timeout 86400s
@@ -9,8 +9,8 @@ jira.jajservers.duckdns.org {
     }
 }
 
-confluence.jajservers.duckdns.org {
-#Jira
+confluence.swarmus.jajservers.duckdns.org {
+#Confluence
     proxy / http://confluence:8090  {
         timeout 86400s
         transparent
