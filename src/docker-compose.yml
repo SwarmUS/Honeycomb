@@ -25,13 +25,16 @@ services:
       - ${DATA}/jira:/var/atlassian/application-data/jira
     environment:
       #Proxy
-      - ATL_PROXY_NAME=caddy
-      - ATL_PROXY_PORT=8080
+      - ATL_PROXY_NAME=jira.swarmus.jajservers.duckdns.org
+      - ATL_PROXY_PORT=443
       - ATL_TOMCAT_SCHEME=https
       - ATL_TOMCAT_SECURE=true
     restart: on-failure
     expose: 
       - "8080"
+    ports:
+      - "587:587"
+      - "465:465"
     networks:
       - db-jira
       - services
@@ -39,13 +42,13 @@ services:
       - jira-postgresql
 
   confluence: 
-    image: atlassian/confluence-server:6.6.15-jdk8
+    image: atlassian/confluence-server:7.4.0-jdk11
     volumes:
       - ${DATA}/confluence:/var/atlassian/application-data/confluence
     environment:
       #Proxy
-      - ATL_PROXY_NAME=caddy
-      - ATL_PROXY_PORT=8090
+      - ATL_PROXY_NAME=confluence.swarmus.jajservers.duckdns.org
+      - ATL_PROXY_PORT=443
       - ATL_TOMCAT_SCHEME=https
       - ATL_TOMCAT_SECURE=true
     restart: on-failure
@@ -58,7 +61,7 @@ services:
       - confluence-postgresql
 
   jira-postgresql:
-    image: postgres:9.4-alpine
+    image: postgres:9.6-alpine
     restart: on-failure
     networks:
       - db-jira
