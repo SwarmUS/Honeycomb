@@ -2,13 +2,15 @@
 
 DELETE=${1:-not-all}
 
-helpFunction()
-{
-   echo ""
-   echo "Usage: $0 -a parameterA -b parameterB -c parameterC"
-   echo -e "\t-a Delete all this includes the data directory at /usr/lib/honeycomb. Default is false "
-   exit 1 # Exit script after printing help
-}
+# Local .env
+if [ -f ./src/.env ]; then
+    # Load Environment Variables
+    export $(cat ./src/.env | grep -v '#' | awk '/=/ {print $1}')
+else
+    echo ".env file not available in src/.env"
+    exit 1
+fi
+
 
 #Programm directory
 rm -rf /usr/local/bin/honeycomb
@@ -17,7 +19,7 @@ rm -rf /usr/local/bin/honeycomb
 if [ "$DELETE" = "all" ]
 then
     echo "Deleting all"
-    rm -rf /usr/local/lib/honeycomb
+    rm -rf "$DATA_DIRECTORY"
 fi
 
 #systemd 

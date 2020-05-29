@@ -9,7 +9,7 @@ services:
       - "443:443"
     volumes:
       - "./config/caddy/Caddyfile:/etc/Caddyfile"
-      - "${DATA}/caddy/.caddy:/root/.caddy"
+      - "${DATA_DIRECTORY}/caddy/.caddy:/root/.caddy"
     environment:
       EULA: "ACME_AGREE=true"
     restart: on-failure
@@ -22,7 +22,7 @@ services:
   jira:
     image: atlassian/jira-software:8.9.0-EAP02-jdk11
     volumes:
-      - ${DATA}/jira:/var/atlassian/application-data/jira
+      - ${DATA_DIRECTORY}/jira:/var/atlassian/application-data/jira
     environment:
       #Proxy
       - ATL_PROXY_NAME=jira.swarmus.jajservers.duckdns.org
@@ -37,14 +37,16 @@ services:
       - "465:465"
     networks:
       - db-jira
+      - db-easyBI
       - services
     depends_on:
       - jira-postgresql
+      - easyBI-postgresql
 
   confluence: 
     image: atlassian/confluence-server:7.4.0-jdk11
     volumes:
-      - ${DATA}/confluence:/var/atlassian/application-data/confluence
+      - ${DATA_DIRECTORY}/confluence:/var/atlassian/application-data/confluence
     environment:
       #Proxy
       - ATL_PROXY_NAME=confluence.swarmus.jajservers.duckdns.org
@@ -56,9 +58,12 @@ services:
       - "8090"
     networks:
       - db-confluence
+      - db-easyBI
       - services
     depends_on:
       - confluence-postgresql
+      - easyBI-postgresql
+      - jira
 
   jira-postgresql:
     image: postgres:9.6-alpine
@@ -66,7 +71,7 @@ services:
     networks:
       - db-jira
     volumes:
-      - ${DATA}/jira-postgresql:/var/lib/postgresql/data
+      - ${DATA_DIRECTORY}/jira-postgresql:/var/lib/postgresql/data
     environment:
       - POSTGRES_PASSWORD=${JIRA_DB_PASSWORD}
       - POSTGRES_USER=${JIRA_DB_USER}
@@ -81,7 +86,7 @@ services:
     networks:
       - db-confluence
     volumes:
-      - ${DATA}/confluence-postgresql:/var/lib/postgresql/data
+      - ${DATA_DIRECTORY}/confluence-postgresql:/var/lib/postgresql/data
     environment:
       - POSTGRES_PASSWORD=${CONFLUENCE_DB_PASSWORD}
       - POSTGRES_USER=${CONFLUENCE_DB_USER}
@@ -90,6 +95,28 @@ services:
       - POSTGRES_COLLATE=C
       - POSTGRES_COLLATE_TYPE=C
 
+  easyBI-postgresql:
+    image: postgres:9.6-alpine
+    restart: on-failure
+    networks:
+      - db-easyBI
+    volumes:
+      - ${DATA_DIRECTORY}/easyBI-postgresql:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_PASSWORD=${EASYBI_DB_PASSWORD}
+      - POSTGRES_USER=${EASYBI_DB_USER}
+      - POSTGRES_DB=${EASYBI_DB}
+      - POSTGRES_ENCODING=UNICODE
+      - POSTGRES_COLLATE=C
+      - POSTGRES_COLLATE_TYPE=C
+
+  onedrive-swarmus:
+    image: driveone/onedrive:alpine-v2.4.2
+    restart: on-failure
+    volumes: 
+      - onedrive_SwarmUS:/onedrive/conf
+      - "${onedriveDir}:/onedrive/data"
+
 networks:
   services:
     driver: bridge
@@ -97,3 +124,8 @@ networks:
     driver: bridge
   db-confluence:
     driver: bridge
+  db-easyBI:
+    driver: bridge
+
+
+#docker run -it --restart unless-stopped --name onedrive -v onedrive_SwarmUS:/onedrive/conf -v "${onedriveDir}:/onedrive/data" driveone/onedrive
