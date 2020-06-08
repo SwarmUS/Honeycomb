@@ -44,7 +44,11 @@ services:
       - easyBI-postgresql
 
   confluence: 
-    image: atlassian/confluence-server:7.4.0-jdk11
+    build: 
+      context: .
+      dockerfile: confluence-dockerfile
+    # Allows naming the build
+    image: confluence_swarmus_latex:latest
     volumes:
       - ${DATA_DIRECTORY}/confluence:/var/atlassian/application-data/confluence
     environment:
@@ -111,11 +115,16 @@ services:
       - POSTGRES_COLLATE_TYPE=C
 
   onedrive-swarmus:
-    image: driveone/onedrive:alpine-v2.4.2
+    image: driveone/onedrive:alpine-202005291951
     restart: on-failure
     volumes: 
-      - onedrive_SwarmUS:/onedrive/conf
-      - "${onedriveDir}:/onedrive/data"
+      - ${DATA_DIRECTORY}/onedrive:/onedrive/conf
+      - "${BACKUP_DIRECTORY}:/onedrive/data"
+
+volumes:
+  onedrive:
+    external:
+      name: "onedrive_SwarmUS"
 
 networks:
   services:
@@ -126,6 +135,3 @@ networks:
     driver: bridge
   db-easyBI:
     driver: bridge
-
-
-#docker run -it --restart unless-stopped --name onedrive -v onedrive_SwarmUS:/onedrive/conf -v "${onedriveDir}:/onedrive/data" driveone/onedrive
