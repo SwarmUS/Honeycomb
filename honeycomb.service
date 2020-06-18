@@ -1,0 +1,19 @@
+# /etc/systemd/system/honeycomb.service
+
+[Unit]
+Description=Docker Compose Honeycomb appservice for jira, confluence, database and the reverse proxy
+Requires=docker.service
+After=docker.service network.target
+
+[Service]
+TimeoutStartSec=0
+Restart=on-failure
+StartLimitIntervalSec=60
+StartLimitBurst=3
+
+WorkingDirectory=/usr/local/bin/honeycomb
+ExecStart=/usr/bin/docker-compose up
+ExecStop=/usr/bin/docker-compose down -v
+
+[Install]
+WantedBy=multi-user.target
