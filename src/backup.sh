@@ -17,19 +17,18 @@ TEMP_DIRECTORY="${BACKUP_TEMP_DIRECTORY}/${CURRENT}"
 
 
 echo "Making temporary backup to $TEMP_DIRECTORY"
-# Making directory
 mkdir -p "$TEMP_DIRECTORY"
 
+echo "Assuring that the folder exists"
+mkdir -p "${BACKUP_SUB_DIRECTORY}"
+
 echo "Backing up jira..."
-#Backing up jira data
 docker exec -t honeycomb_jira-postgresql_1 pg_dumpall -c -U "$JIRA_DB_USER" > "${TEMP_DIRECTORY}/jira_postgres.sql"
 
 echo "Backing up confluence..."
-#Backing up confluence data
 docker exec -t honeycomb_confluence-postgresql_1 pg_dumpall -c -U "$CONFLUENCE_DB_USER" > "${TEMP_DIRECTORY}/confluence_postgres.sql"
 
 echo "Backing up easyBI..."
-#Backing up easyBI data
 docker exec -t honeycomb_easyBI-postgresql_1 pg_dumpall -c -U "$EASYBI_DB_USER" > "${TEMP_DIRECTORY}/easyBI_postgres.sql"
 
 #Creating symbolic link
